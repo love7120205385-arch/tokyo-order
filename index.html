@@ -112,14 +112,14 @@
       border: 1px solid #a7f3d0;
     }
 
-    /* 流程圖強迫症極致對稱 */
+    /* 流程圖對稱三步驟 */
     .steps-container {
       display: grid;
-      grid-template-columns: 1fr 1.1fr 1fr;
+      grid-template-columns: 1fr 1.15fr 1fr;
       align-items: flex-start;
       gap: 4px;
       background: #fff;
-      padding: 14px 8px;
+      padding: 14px 6px;
       border-radius: 16px;
       border: 1px dashed var(--border);
     }
@@ -132,7 +132,7 @@
     }
 
     .step-title {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 800;
       color: #be185d;
       white-space: nowrap;
@@ -147,13 +147,6 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-    }
-
-    .step-arrow {
-      color: var(--primary);
-      font-size: 0.8rem;
-      opacity: 0.6;
-      margin-top: 2px;
     }
 
     /* 主表單卡片 */
@@ -308,6 +301,7 @@
     }
 
     .sm-input {
+      width: 100%;
       padding: 8px 10px;
       border-radius: 10px;
       border: 1.5px solid #fce7f3;
@@ -319,7 +313,7 @@
       border-color: var(--primary);
     }
 
-    /* 購買地點網格對齊 (Grid 化) */
+    /* 購買地點網格對齊 (Grid 4x2) */
     .location-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -598,6 +592,7 @@
         <div class="items-title">🛍️ 委託商品清單</div>
       </div>
 
+      <!-- 商品動態掛載區 -->
       <div id="itemsContainer"></div>
 
       <button type="button" class="btn-add-item" onclick="addNewItem()">
@@ -628,10 +623,8 @@
   </div>
 
   <script>
-    // 你的 Google Apps Script 部署 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwk_P11xETiasuyq0hEUz1YdyPK50V162o9-cT0FqYnrxccg4rCKFgSS1NexJlg76Lpb/exec";
 
-    // 8 大地點選項 (4x2 完美網格)
     const LOCATIONS = [
       "精品專櫃", "專櫃美妝", "Bic Camera", "日本藥妝",
       "堂吉訶德", "三麗鷗", "寶可夢", "其他地點"
@@ -653,7 +646,7 @@
     }
 
     function addNewItem() {
-      const id = Date.now();
+      const id = Date.now() + Math.floor(Math.random() * 1000);
       itemsData.push({
         id: id,
         image: "",
@@ -678,6 +671,7 @@
 
     function renderItems() {
       const container = document.getElementById("itemsContainer");
+      if (!container) return;
       container.innerHTML = "";
 
       itemsData.forEach((item, index) => {
@@ -724,7 +718,7 @@
           </div>
 
           ${item.fallback === 'substitute' ? `
-            <input type="text" class="sm-input" placeholder="請備註候補款式或顏色" value="${item.fallbackNote \vert{}\vert{} ''}" oninput="updateItemField(${item.id}, 'fallbackNote', this.value)">
+            <input type="text" class="sm-input" style="margin-top:6px;" placeholder="請備註候補款式或顏色" value="${item.fallbackNote \vert{}\vert{} ''}" oninput="updateItemField(${item.id}, 'fallbackNote', this.value)">
           ` : ''}
         `;
         container.appendChild(itemEl);
@@ -868,8 +862,10 @@
       location.reload();
     }
 
-    // 初始化第一個商品
-    addNewItem();
+    // 確保 DOM 加載完畢後必定掛載第一筆商品
+    document.addEventListener("DOMContentLoaded", function() {
+      addNewItem();
+    });
   </script>
 </body>
 </html>
