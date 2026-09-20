@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>行李箱空間有限・滿單即提早收單</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root {
+  --bg: #F5EFE9;
+  --card: #FFFFFF;
+  --field: #FFFDF9;
+  --text: #4A3B32;
+  --sub: #8C7B70;
+  --pink: #F8B5C2;
+  --pink-light: #FDE8ED;
+  --pink-deep: #E76F86;
+  --alert: #D93B58;
+  --border: #E7DBCF;
+  --divider: #F0E6DC;
+  --err: #D9463E;
+  --err-bg: #FFF5F5;
+  --note-text: #544337;
+  --warn-text: #9E6441;
+  --warn-border: #F0D5C3;
+  --header-bg: rgba(245,239,233,.92);
+  --shadow: 0 2px 14px rgba(120,100,85,.07);
+  --btn-shadow: 0 4px 14px rgba(231,111,134,.32);
+  --box-bg: linear-gradient(135deg,#FFF6F8 0%,#FFF0F3 100%);
+  --success-text: #8E4050;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#211B18; --card:#2D2521; --field:#352C27; --text:#F3E8E0; --sub:#B8A79B;
+    --pink:#9B4B5C; --pink-light:#48292F; --pink-deep:#F28CA0; --alert:#FF8FA3; --border:#4A3C34; --divider:#3F332C;
+    --err:#FF8A80; --err-bg:#42231F; --note-text:#EADBCE;
+    --warn-text:#F0B98F; --warn-border:#5A4030; --header-bg:rgba(33,27,24,.92);
+    --shadow:0 2px 14px rgba(0,0,0,.3);
+    --box-bg:linear-gradient(135deg,#3A2A2E 0%,#33262A 100%);
+    --success-text:#F5B7C3;
+  }
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background-color: var(--bg); color: var(--text);
+  font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+button { font-family: inherit; }
+.root { min-height: 100vh; position: relative; overflow-x: hidden; background-color: var(--bg); }
+.root::before { content:"🌸"; position:fixed; right:-30px; top:90px; font-size:170px; opacity:.10; pointer-events:none; z-index:0; }
+.root::after { content:"🗼"; position:fixed; left:-20px; bottom:80px; font-size:190px; opacity:.07; pointer-events:none; z-index:0; }
+
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+  background: var(--header-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border); padding: 13px 14px; text-align: center;
+}
+header.top h1 { margin: 0; font-size: 17px; line-height: 1.4; font-weight: 900; letter-spacing: .02em; }
+@media (min-width: 420px) { header.top h1 { font-size: 20px; } }
+main { max-width: 620px; margin: 0 auto; padding: 16px 16px 80px; position: relative; z-index: 1; }
+
+.card { background: var(--card); border: 1.5px solid var(--border); border-radius: 22px; box-shadow: var(--shadow); padding: 16px; position: relative; z-index: 1; }
+.stack { display: flex; flex-direction: column; }
+.row { display: flex; }
+.gap-s { gap: 8px; } .gap-m { gap: 14px; }
+.mt-s { margin-top: 8px; } .mt-m { margin-top: 14px; } .mt-l { margin-top: 24px; }
+
+/* 資訊卡片 */
+.merge { border-radius: 18px; padding: 12px 14px; text-align: center; background: var(--pink-light); }
+.merge .l1 { font-size: 16px; font-weight: 900; color: var(--pink-deep); }
+.merge .l2 { margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--note-text); }
+.min-order { margin: 14px 0 0; text-align: center; font-size: 16px; font-weight: 900; color: var(--alert); letter-spacing: .01em; }
+.schedule { margin-top: 12px; padding: 9px 12px; border: 1.5px dashed var(--pink); border-radius: 14px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.7; color: var(--note-text); }
+.schedule span { display: inline-block; white-space: nowrap; }
+.schedule i { font-style: normal; color: var(--pink); margin: 0 4px; }
+.steps { margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; text-align: center; font-size: 12px; line-height: 1.5; color: var(--sub); }
+.steps > div:not(.arrow) { flex: 1; min-width: 0; }
+.steps b { display: block; font-size: 14px; color: var(--pink-deep); margin-bottom: 2px; }
+.steps .arrow { flex: none; color: var(--pink); font-size: 16px; padding-top: 2px; }
+
+label.lbl { display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--sub); }
+label.lbl.accent { color: var(--pink-deep); }
+.input {
+  width:100%; background:var(--field); border:1.5px solid var(--border); border-radius:15px;
+  padding:12px 15px; font-size:16px; font-family:inherit; color:var(--text); outline:none; transition:border-color .2s, box-shadow .2s;
+}
+.input::placeholder { color: var(--sub); opacity:.7; }
+.input:focus { border-color:var(--pink-deep); box-shadow:0 0 0 3px var(--pink-light); }
+.input.err { border-color:var(--err); background:var(--err-bg); }
+.errmsg { color:var(--err); font-size:12px; font-weight:700; margin-top:4px; }
+.hint { color:var(--sub); font-size:12px; margin-top:4px; }
+.at-wrap { position:relative; }
+.at-wrap .at { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:var(--pink-deep); }
+.at-wrap .input { padding-left:34px; }
+
+.section-head { margin-top: 24px; padding: 0 4px; }
+.section-head h2 { margin:0; font-size:16px; font-weight:800; }
+.section-head p { margin: 4px 0 0; font-size: 12px; line-height: 1.6; font-weight: 600; color: var(--pink-deep); }
+
+.item-tag { font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px; background:var(--pink-light); color:var(--pink-deep); }
+.link-btn { display:inline-flex; align-items:center; gap:4px; background:none; border:0; color:var(--sub); font-size:12px; font-weight:700; cursor:pointer; padding:4px; }
+.link-btn:hover { color:var(--err); }
+
+.drop { width:112px; height:112px; border:2px dashed var(--pink); border-radius:18px; background:var(--field); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-align:center; color:var(--pink-deep); cursor:pointer; padding:0; }
+.drop.err { border-color:var(--err); background:var(--err-bg); }
+.drop:focus-visible, button:focus-visible { outline:3px solid var(--pink-deep); outline-offset:2px; }
+.drop .t1 { font-size:12px; font-weight:700; } .drop .t2 { font-size:10px; opacity:.8; }
+.thumb { position:relative; width:112px; height:112px; }
+.thumb .frame { width:112px; height:112px; border-radius:18px; overflow:hidden; border:1.5px solid var(--border); }
+.thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.thumb .acts { position:absolute; right:4px; bottom:4px; display:flex; gap:4px; }
+.thumb .acts button { width:30px; height:30px; border-radius:8px; border:0; background:rgba(255,255,255,.92); color:#4A3B32; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,.2); cursor:pointer; }
+.thumb .acts button.del { color:#D9463E; }
+.upload-err { font-size:11px; font-weight:700; color:var(--err); margin-top:4px; text-align:center; width:112px; }
+
+.item-foot { margin-top:14px; padding-top:12px; border-top:1px solid var(--divider); display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px; }
+.stepper { display:inline-flex; align-items:center; border:1.5px solid var(--border); border-radius:999px; background:var(--field); }
+.stepper button { width:38px; height:38px; border:0; background:transparent; color:var(--sub); display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; }
+.stepper button:active { transform:scale(.9); }
+.stepper span { min-width:28px; text-align:center; font-weight:700; }
+
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { border:1.5px solid var(--border); background:var(--field); color:var(--sub); border-radius:999px; padding:8px 14px; font-size:14px; font-weight:700; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
+.chip:hover { border-color:var(--pink); color:var(--pink-deep); }
+.chip.on { border-color:var(--pink-deep); background:var(--pink-light); color:var(--pink-deep); }
+.chip.sm { padding:6px 12px; font-size:13px; }
+.sub-panel { margin-top:10px; padding:12px; border-radius:16px; background:var(--pink-light); animation:pop .18s ease-out; }
+.sub-panel .lbl { color:var(--pink-deep); }
+.sub-panel .chip { background:var(--card); }
+.sub-panel .chip.on { background:var(--pink-deep); border-color:var(--pink-deep); color:#fff; }
+
+.opt { flex:1; display:flex; gap:10px; align-items:center; background:var(--field); border:1.5px solid var(--border); border-radius:16px; padding:12px 14px; font-size:14px; text-align:left; cursor:pointer; color:var(--text); transition:border-color .2s, background .2s; }
+.opt.small { padding:8px 12px; }
+.opt.on { border-color:var(--pink-deep); background:var(--pink-light); color:var(--pink-deep); }
+.radio { flex:none; width:18px; height:18px; border-radius:50%; border:2px solid var(--border); position:relative; background:var(--card); }
+.opt.on .radio { border-color:var(--pink-deep); }
+.opt.on .radio::after { content:""; position:absolute; inset:3px; border-radius:50%; background:var(--pink-deep); }
+.opt .ttl { font-weight:700; font-size:14px; } .opt .desc { font-size:12px; opacity:.75; }
+
+.btn-add { width:100%; margin-top:12px; padding:12px; display:flex; align-items:center; justify-content:center; background:transparent; border:1.5px dashed var(--pink); color:var(--pink-deep); border-radius:999px; font-weight:800; font-size:15px; cursor:pointer; }
+.btn-add:hover { background:var(--pink-light); }
+.btn-sub { display:inline-flex; align-items:center; gap:4px; background:var(--field); border:1.5px solid var(--border); color:var(--sub); border-radius:999px; font-weight:700; font-size:12px; padding:6px 12px; cursor:pointer; }
+.btn-main { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; background:linear-gradient(135deg,#F8B5C2 0%,#E76F86 100%); color:#fff; font-weight:800; font-size:16px; padding:14px; border:0; border-radius:999px; box-shadow:var(--btn-shadow); cursor:pointer; transition:transform .1s; }
+.btn-main:active { transform:scale(.98); }
+.btn-main:disabled { opacity:.65; cursor:not-allowed; }
+
+.pay { border-radius:18px; padding:14px; background:var(--box-bg); border:1.5px solid var(--pink); margin-top:14px; }
+.pay .head { display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; color:var(--pink-deep); }
+.pay .warn { margin-top:8px; display:flex; gap:6px; align-items:flex-start; padding:8px; border-radius:12px; font-size:12px; font-weight:600; line-height:1.5; background:var(--card); color:var(--warn-text); border:1px solid var(--warn-border); }
+.foot-note { margin-top:10px; text-align:center; font-size:12px; font-weight:600; color:var(--sub); }
+.banner { margin-top:14px; padding:12px; border-radius:14px; font-size:13px; font-weight:600; line-height:1.6; background:var(--err-bg); color:var(--err); border:1.5px solid var(--err); }
+.hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+
+.overlay { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.45); backdrop-filter:blur(4px); }
+.modal { width:100%; max-width:384px; text-align:center; padding:24px; max-height:92vh; overflow:auto; animation:pop .22s ease-out; }
+@keyframes pop { from { transform:scale(.97); opacity:0; } to { transform:none; opacity:1; } }
+.modal .ok { width:48px; height:48px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; background:var(--pink-light); color:var(--pink-deep); }
+.modal h3 { margin:12px 0 0; font-size:16px; font-weight:800; }
+.modal .no { font-size:24px; font-weight:900; letter-spacing:.06em; margin-top:2px; color:var(--pink-deep); user-select:all; }
+.modal .tip { margin-top:16px; padding:12px; border-radius:12px; font-size:12px; text-align:left; line-height:1.7; background:var(--pink-light); color:var(--success-text); }
+.modal .tip.warn { background:var(--err-bg); color:var(--err); }
+.modal ul { margin:12px 0 0; padding:0; list-style:none; text-align:left; font-size:12px; color:var(--sub); }
+.modal li { padding:4px 0; border-bottom:1px dashed var(--divider); display:flex; justify-content:space-between; gap:8px; }
+.toast { position:fixed; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); z-index:60; display:flex; justify-content:center; padding:0 16px; pointer-events:none; }
+.toast div { background:#3B322D; color:#fff; border-radius:999px; padding:8px 16px; font-size:12px; font-weight:600; box-shadow:0 4px 14px rgba(0,0,0,.3); }
+.pulse { animation:pulse 1.2s infinite; } @keyframes pulse { 50% { opacity:.4; } }
+@media (prefers-reduced-motion: reduce) { .modal, .sub-panel, .pulse { animation:none; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+(function () {
+  var h = React.createElement;
+  var useState = React.useState, useRef = React.useRef, useCallback = React.useCallback;
+
+  /* ================= 設定 ================= */
+  var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwk_PI1xETIasuyq0hEUz1YdyPk50V162o9-c10FqYrxrccg4rCKFgSS1NeXJg76Lpb/exec";
+  var MAX_PAYLOAD_MB = 8;      // 全部照片合計上限（Base64）
+  var COOLDOWN_MS = 30000;     // 兩張不同訂單的最短間隔
+  var INITIAL_ITEMS = 2;       // 預設顯示的商品卡片數
+  var ADD_COUNT = 2;           // 每次按「＋ 新增商品」新增的卡片數
+  var USE_PLACE_PICKER = true; // true：標籤選擇（9 個購買地點）；false：單純文字輸入框
+
+  var SHIPPING = {
+    self:   { label: "自行提供超商寄件編號", desc: "到貨後請提供寄件編號給我", icon: "truck" },
+    seller: { label: "賣家開 7-11 賣貨便下單", desc: "買到後會開賣場讓你下單", icon: "store" }
+  };
+
+  var PLACES = ["精品", "專櫃香水化妝品", "Bic camera", "藥妝店", "堂吉訶德", "三麗鷗", "寶可夢", "超商", "其他"];
+  var STORES = ["7-11", "全家", "Lawson"];   // 選「超商」後展開的單選
+  // 點選後需要展開輸入框的項目 -> [缺填時的錯誤訊息, placeholder]
+  var NEED_DETAIL = {
+    "精品": ["請填寫具體門市或專櫃名稱", "例：CELINE 銀座店"],
+    "專櫃香水化妝品": ["請填寫具體門市或專櫃名稱", "例：SK-II 新宿伊勢丹專櫃"],
+    "其他": ["請填寫具體門市或專櫃名稱", "例：UNIQLO 銀座店"]
+  };
+
+  /* ================= 圖示 ================= */
+  var ICONS = {
+    plus: ["M5 12h14", "M12 5v14"],
+    minus: ["M5 12h14"],
+    trash: ["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"],
+    camera: ["M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z", "M12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"],
+    imageplus: ["M16 5h6", "M19 2v6", "M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5", "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", "M9 7a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"],
+    check: ["M20 6 9 17l-5-5"],
+    copy: ["M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z", "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"],
+    send: ["m22 2-7 20-4-9-9-4Z", "M22 2 11 13"],
+    alert: ["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", "M12 8v4", "M12 16h.01"],
+    wallet: ["M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2", "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"],
+    truck: ["M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2", "M15 18H9", "M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14", "M17 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z", "M7 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"],
+    store: ["M3 9l1.5-5h15L21 9", "M3 9h18v0a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z", "M4 12v8h16v-8", "M10 20v-5h4v5"]
+  };
+  function Icon(p) {
+    var paths = ICONS[p.name] || [];
+    return h("svg", { width: p.size || 16, height: p.size || 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", style: { flex: "none" } },
+      paths.map(function (d, i) { return h("path", { key: i, d: d }); }));
+  }
+
+  /* ================= 工具 ================= */
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function genOrderNo() {
+    var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = "";
+    for (var i = 0; i < 4; i++) r += chars[Math.floor(Math.random() * chars.length)];
+    return "TK" + String(d.getFullYear()).slice(2) + p(d.getMonth() + 1) + p(d.getDate()) + "-" + r;
+  }
+  function compressAndValidateImage(file, maxSide, quality) {
+    maxSide = maxSide || 800; quality = quality || 0.65;
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("讀取照片失敗")); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error("無法解析這張照片，請改用 JPG 或 PNG")); };
+        img.onload = function () {
+          var ratio = img.width / img.height;
+          if ((ratio >= 0.52 && ratio <= 0.60) || (ratio >= 1.70 && ratio <= 1.86)) {
+            reject(new Error("圖片尺寸不可為 9:16 或 16:9！請先裁切為 1:1 (正方形) 或 4:3 後再上傳。"));
+            return;
+          }
+          try {
+            var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            var w = Math.round(img.width * scale), hh = Math.round(img.height * scale);
+            var c = document.createElement("canvas"); c.width = w; c.height = hh;
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, hh);
+            ctx.drawImage(img, 0, 0, w, hh);
+            resolve(c.toDataURL("image/jpeg", quality));
+          } catch (e) { reject(new Error("縮圖失敗，請換一張照片")); }
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function copyText(text) {
+    try { return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; }); }
+    catch (e) { return Promise.resolve(false); }
+  }
+
+  // 組合「哪裡購買」字串，例："精品 - CELINE 銀座店"、"堂吉訶德"、"藥妝店"
+  function buildBrand(it) {
+    if (!USE_PLACE_PICKER) return it.placeDetail.trim();
+    if (!it.place) return "";
+    if (it.place === "超商") return it.store ? "超商 - " + it.store : "超商";
+    if (NEED_DETAIL[it.place]) { var d = it.placeDetail.trim(); return d ? it.place + " - " + d : it.place; }
+    return it.place;
+  }
+
+  // 送單：先用標準請求（可讀到回應）；若被瀏覽器擋（CORS/網路），改用 no-cors 補送一次
+  function postOrder(payload) {
+    var body = JSON.stringify(payload);
+    var headers = { "Content-Type": "text/plain;charset=utf-8" };
+    return fetch(GAS_API_URL, { method: "POST", headers: headers, body: body }).then(function (res) {
+      if (!res.ok) { var e = new Error("伺服器回應異常（" + res.status + "）"); e.kind = "server"; throw e; }
+      return res.text().then(function (txt) {
+        var j = null; try { j = JSON.parse(txt); } catch (x) {}
+        if (j && j.ok === false) { var er = new Error(j.error || "後端回報儲存失敗"); er.kind = "server"; throw er; }
+        return { confirmed: !!(j && j.ok) };
+      });
+    }, function () {
+      return fetch(GAS_API_URL, { method: "POST", mode: "no-cors", headers: headers, body: body }).then(function () { return { confirmed: false }; });
+    });
+  }
+
+  var newItem = function () {
+    return { id: uid(), image: "", name: "", place: "", placeDetail: "", store: "", variant: "", qty: 1, fallback: "cancel", fallbackNote: "" };
+  };
+  var initialItems = function () { var a = []; for (var i = 0; i < INITIAL_ITEMS; i++) a.push(newItem()); return a; };
+  var emptyProfile = { threads: "", last5: "", shipping: "" };
+
+  /* ================= 元件 ================= */
+  function Stepper(p) {
+    return h("div", { className: "stepper" },
+      h("button", { type: "button", "aria-label": "減少數量", onClick: function () { p.onChange(Math.max(1, p.value - 1)); } }, h(Icon, { name: "minus", size: 15 })),
+      h("span", null, p.value),
+      h("button", { type: "button", "aria-label": "增加數量", onClick: function () { p.onChange(Math.min(99, p.value + 1)); } }, h(Icon, { name: "plus", size: 15 })));
+  }
+
+  function ImageUploader(p) {
+    var inputRef = useRef(null);
+    var st = useState(false), compressing = st[0], setCompressing = st[1];
+    var es = useState(""), uploadErr = es[0], setUploadErr = es[1];
+    function pick() { if (inputRef.current) inputRef.current.click(); }
+    function handleFile(file) {
+      if (!file || !file.type || file.type.indexOf("image/") !== 0) { setUploadErr("請選擇圖片檔"); return; }
+      if (file.size > 20 * 1024 * 1024) { setUploadErr("圖片超過 20MB，請改傳一般截圖"); return; }
+      setUploadErr(""); setCompressing(true);
+      compressAndValidateImage(file).then(function (b64) { p.onChange(b64); })
+        .catch(function (e) { setUploadErr(e.message || "圖片規格不符"); })
+        .then(function () { setCompressing(false); });
+    }
+    var hidden = h("input", { ref: inputRef, type: "file", accept: "image/*", hidden: true, onChange: function (e) { handleFile(e.target.files && e.target.files[0]); e.target.value = ""; } });
+    var errLine = (uploadErr || p.error) ? h("div", { className: "upload-err", role: "alert" }, uploadErr || p.error) : null;
+    if (p.value) {
+      return h("div", null,
+        h("div", { className: "thumb" },
+          h("div", { className: "frame" }, h("img", { src: p.value, alt: "商品截圖" })),
+          h("div", { className: "acts" },
+            h("button", { type: "button", "aria-label": "重新選擇照片", onClick: pick }, h(Icon, { name: "camera", size: 14 })),
+            h("button", { type: "button", className: "del", "aria-label": "移除照片", onClick: function () { p.onChange(""); } }, h(Icon, { name: "trash", size: 14 })))),
+        errLine, hidden);
+    }
+    return h("div", null,
+      h("button", { type: "button", className: "drop" + (p.error || uploadErr ? " err" : ""), onClick: pick },
+        compressing ? h("span", { className: "t1 pulse" }, "檢查與縮圖中…") : [
+          h(Icon, { key: "i", name: "imageplus", size: 24 }),
+          h("span", { key: "a", className: "t1" }, "上傳截圖 (必附)"),
+          h("span", { key: "b", className: "t2" }, "1:1 或 4:3 圖片")
+        ]),
+      errLine, hidden);
+  }
+
+  function Field(p) {
+    return h("div", null,
+      h("label", { className: "lbl", htmlFor: p.id }, p.label),
+      h("input", { id: p.id, className: "input" + (p.error ? " err" : ""), placeholder: p.placeholder, value: p.value, autoComplete: "off", onChange: function (e) { p.onChange(e.target.value); } }),
+      p.error ? h("div", { className: "errmsg" }, p.error) : null);
+  }
+
+  // 哪裡購買：標籤 + 動態展開區塊
+  function PlacePicker(p) {
+    var it = p.item, err = p.error;
+    function choose(place) {
+      if (it.place === place) p.onChange({ place: "", placeDetail: "", store: "" });
+      else p.onChange({ place: place, placeDetail: "", store: "" });
+    }
+    var needs = NEED_DETAIL[it.place];
+    var panel = null;
+    if (needs) {
+      panel = h("div", { className: "sub-panel" },
+        h("label", { className: "lbl", htmlFor: "pd-" + it.id }, "請填寫具體門市或專櫃名稱"),
+        h("input", { id: "pd-" + it.id, className: "input" + (err ? " err" : ""), placeholder: needs[1], value: it.placeDetail, autoComplete: "off", onChange: function (e) { p.onChange({ placeDetail: e.target.value }); } }),
+        err ? h("div", { className: "errmsg" }, err) : null);
+    } else if (it.place === "超商") {
+      panel = h("div", { className: "sub-panel" },
+        h("span", { className: "lbl", style: { display: "block" } }, "請選擇超商"),
+        h("div", { className: "chips", role: "radiogroup", "aria-label": "超商" },
+          STORES.map(function (s) {
+            return h("button", { key: s, type: "button", role: "radio", "aria-checked": it.store === s, className: "chip sm" + (it.store === s ? " on" : ""), onClick: function () { p.onChange({ store: s }); } }, s);
+          })),
+        err ? h("div", { className: "errmsg" }, err) : null);
+    }
+    return h("div", { className: "mt-m" },
+      h("span", { className: "lbl", style: { display: "block" } }, "哪裡購買 (必填) 🌸"),
+      h("div", { className: "chips", role: "radiogroup", "aria-label": "哪裡購買" },
+        PLACES.map(function (pl) {
+          return h("button", { key: pl, type: "button", role: "radio", "aria-checked": it.place === pl, className: "chip" + (it.place === pl ? " on" : ""), onClick: function () { choose(pl); } }, pl);
+        })),
+      !panel && err ? h("div", { className: "errmsg", role: "alert" }, err) : null,
+      panel);
+  }
+
+  function ItemCard(p) {
+    var it = p.item, err = p.err || {};
+    function set(patch) { p.onUpdate(it.id, patch); }
+    return h("section", { className: "card", "data-err": p.err ? "true" : undefined },
+      h("div", { className: "row", style: { justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+        h("span", { className: "item-tag" }, "✨ 商品 " + (p.index + 1)),
+        p.canRemove ? h("button", { type: "button", className: "link-btn", onClick: function () { p.onRemove(it.id); } }, h(Icon, { name: "trash", size: 13 }), " 刪除") : null),
+      h("div", { className: "row gap-m" },
+        h("div", { style: { flex: "none" } }, h(ImageUploader, { value: it.image, error: err.image, onChange: function (v) { set({ image: v }); } })),
+        h("div", { style: { minWidth: 0, flex: 1 } },
+          h(Field, { id: "n-" + it.id, label: "日文品名 / 貨號 (必填)", placeholder: "例：マルセイバターサン", value: it.name, error: err.name, onChange: function (v) { set({ name: v }); } }),
+          h("div", { className: "mt-s" }, h(Field, { id: "v-" + it.id, label: "幾錠 / 容量 / 顏色 / 尺寸", placeholder: "選填，例：90錠、50ml、黑色 24cm", value: it.variant, onChange: function (v) { set({ variant: v }); } })))),
+      USE_PLACE_PICKER
+        ? h(PlacePicker, { item: it, error: err.place, onChange: set })
+        : h("div", { className: "mt-m" }, h(Field, { id: "pd-" + it.id, label: "哪裡購買 (必填) 🌸", placeholder: "例：堂吉訶德、CELINE 銀座店", error: err.place, value: it.placeDetail, onChange: function (v) { set({ placeDetail: v }); } })),
+      h("div", { className: "item-foot" },
+        h("div", null, h("span", { className: "lbl", style: { display: "block" } }, "委託數量"), h(Stepper, { value: it.qty, onChange: function (v) { set({ qty: v }); } })),
+        h("div", { style: { flex: 1, minWidth: 200 } },
+          h("span", { className: "lbl", style: { display: "block" } }, "缺貨備案"),
+          h("div", { className: "row gap-s", role: "radiogroup", "aria-label": "缺貨備案" },
+            [["cancel", "缺貨則取消"], ["substitute", "可換其他款"]].map(function (o) {
+              return h("button", { key: o[0], type: "button", role: "radio", "aria-checked": it.fallback === o[0], className: "opt small" + (it.fallback === o[0] ? " on" : ""), onClick: function () { set({ fallback: o[0] }); } },
+                h("span", { className: "radio" }), h("span", { style: { fontSize: 12, fontWeight: 700 } }, o[1]));
+            })))),
+      it.fallback === "substitute" ? h("div", { className: "mt-s" },
+        h("input", { className: "input", style: { fontSize: 14 }, "aria-label": "備選款式說明", placeholder: "想更換的備選？例：買不到焦糖就換草莓", value: it.fallbackNote, onChange: function (e) { set({ fallbackNote: e.target.value }); } })) : null);
+  }
+
+  function App() {
+    var s1 = useState(emptyProfile), profile = s1[0], setProfile = s1[1];
+    var s2 = useState(initialItems), items = s2[0], setItems = s2[1];
+    var s3 = useState({}), errors = s3[0], setErrors = s3[1];
+    var s4 = useState(false), submitting = s4[0], setSubmitting = s4[1];
+    var s5 = useState(null), done = s5[0], setDone = s5[1];
+    var s6 = useState(""), toast = s6[0], setToast = s6[1];
+    var s7 = useState(""), sendError = s7[0], setSendError = s7[1];
+    var toastTimer = useRef(null);
+    var orderNoRef = useRef(null);   // 同一張單重試時沿用同一個編號
+    var lastSentRef = useRef(0);
+    var hpRef = useRef(null);
+
+    var notify = useCallback(function (msg) {
+      setToast(msg); clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(function () { setToast(""); }, 2400);
+    }, []);
+
+    function setP(patch) { setProfile(function (p) { return Object.assign({}, p, patch); }); }
+    function updateItem(id, patch) { setItems(function (arr) { return arr.map(function (it) { return it.id === id ? Object.assign({}, it, patch) : it; }); }); }
+    function removeItem(id) { setItems(function (arr) { return arr.length > 1 ? arr.filter(function (it) { return it.id !== id; }) : arr; }); }
+    function addItems() {
+      setItems(function (arr) {
+        var extra = []; for (var i = 0; i < ADD_COUNT; i++) extra.push(newItem());
+        return arr.concat(extra);
+      });
+    }
+
+    // 空白的商品卡（沒圖、沒品名）不算數；至少要有一件有填的商品
+    function isBlank(it) { return !it.image && !it.name.trim() && !it.variant.trim() && !it.place && !it.placeDetail.trim(); }
+    var totalQty = items.reduce(function (s, it) { return s + ((it.name.trim() || it.image) ? it.qty : 0); }, 0);
+
+    function submit() {
+      if (submitting) return;
+      if (hpRef.current && hpRef.current.value) return;   // 機器人欄位
+      var errs = {};
+      var threads = profile.threads.trim().replace(/^@+/, "");
+      var last5 = profile.last5.trim();
+      if (!threads) errs.threads = "請填寫 Threads 帳號，方便我們私訊對帳";
+      if (last5 && !/^\d{5}$/.test(last5)) errs.last5 = "末 5 碼需為 5 位數字（還沒匯款可留空）";
+      if (!profile.shipping) errs.shipping = "請選擇預計出貨方式";
+
+      var filled = items.filter(function (it) { return !isBlank(it); });
+      var target = filled.length ? filled : [items[0]];   // 全空時，提示第一張必填
+      var itemErr = {};
+      target.forEach(function (it) {
+        var e = {};
+        if (!it.name.trim()) e.name = "請填寫日文品名或貨號";
+        if (!it.image) e.image = "請附上商品截圖";
+        if (USE_PLACE_PICKER) {
+          if (!it.place) e.place = "請選擇哪裡購買";
+          else if (NEED_DETAIL[it.place] && !it.placeDetail.trim()) e.place = NEED_DETAIL[it.place][0];
+          else if (it.place === "超商" && !it.store) e.place = "請選擇 7-11 / 全家 / Lawson";
+        } else if (!it.placeDetail.trim()) {
+          e.place = "請填寫哪裡購買";
+        }
+        if (Object.keys(e).length) itemErr[it.id] = e;
+      });
+      if (Object.keys(itemErr).length) errs.itemErr = itemErr;
+      setErrors(errs);
+      if (Object.keys(errs).length) {
+        notify("請確認每項商品的照片、品名與購買地點都已填寫");
+        setTimeout(function () { var el = document.querySelector('[data-err="true"]'); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+        return;
+      }
+      var size = filled.reduce(function (s, it) { return s + it.image.length; }, 0);
+      if (size > MAX_PAYLOAD_MB * 1024 * 1024) {
+        setSendError("照片合計太大（超過 " + MAX_PAYLOAD_MB + "MB），請減少品項或改傳較小的截圖。");
+        return;
+      }
+      var wait = COOLDOWN_MS - (Date.now() - lastSentRef.current);
+      if (wait > 0 && !orderNoRef.current) { notify("請稍候 " + Math.ceil(wait / 1000) + " 秒再送出"); return; }
+
+      if (!orderNoRef.current) orderNoRef.current = genOrderNo();
+      var orderNo = orderNoRef.current;
+      var payload = {
+        orderNo: orderNo,
+        threads: threads,
+        last5: last5,
+        refundBank: "無（暫不提供）",
+        refundAcct: "無（暫不提供）",
+        shipping: profile.shipping,
+        note: "",
+        items: filled.map(function (it) {
+          return {
+            name: it.name.trim(),
+            brand: buildBrand(it),
+            variant: it.variant.trim(),
+            jpName: "",
+            qty: it.qty,
+            fallback: it.fallback,
+            fallbackNote: it.fallback === "substitute" ? it.fallbackNote.trim() : "",
+            image: it.image
+          };
+        })
+      };
+      setSubmitting(true); setSendError("");
+      postOrder(payload).then(function (r) {
+        lastSentRef.current = Date.now();
+        setDone({ orderNo: orderNo, threads: threads, items: filled, confirmed: r.confirmed });
+      }).catch(function (err) {
+        if (err && err.kind === "server") setSendError("送出失敗：" + err.message + "。請稍後再按一次「確認送出委託」。");
+        else setSendError("無法連線到訂單系統，訂單尚未確認送達。請檢查網路後再試；若重試仍失敗，請截圖畫面並私訊 Threads 告知（訂單編號 " + orderNo + "）。");
+      }).then(function () { setSubmitting(false); });
+    }
+
+    function closeDone() {
+      setDone(null); setProfile(emptyProfile); setItems(initialItems()); setErrors({}); setSendError("");
+      orderNoRef.current = null;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    return h("div", { className: "root" },
+      h("header", { className: "top" }, h("h1", null, "🧳 行李箱空間有限・滿單即提早收單 ⏰")),
+      h("main", null,
+        h("section", { className: "card" },
+          h("div", { className: "merge" },
+            h("div", { className: "l1" }, "⛩️ 💰演算法緣分限定 💰⛩️"),
+            h("div", { className: "l2" }, "🌑 商品計算：商品稅後價 × 0.22315")),
+          h("p", { className: "min-order" }, "* 只接總金額台幣1000-5000 以上訂單"),
+          h("div", { className: "schedule" },
+            h("span", null, "⏰ 收單截止：9/29 10:00"), h("i", null, "｜"), h("span", null, "📦 回台出貨：10/2起陸續寄出")),
+          h("div", { className: "steps" },
+            h("div", null, h("b", null, "1. 填單截圖"), "填寫清單並截圖保存"),
+            h("div", { className: "arrow" }, "➜"),
+            h("div", null, h("b", null, "2. 私訊對帳"), "私訊 Threads 小盒子確認"),
+            h("div", { className: "arrow" }, "➜"),
+            h("div", null, h("b", null, "3. 連線採買"), "現場確認庫存、回台迅速出貨"))),
+
+        h("section", { className: "card mt-m", "data-err": errors.threads ? "true" : undefined },
+          h("label", { className: "lbl accent", htmlFor: "threads" }, "委託人 Threads 帳號（必填）🌸"),
+          h("div", { className: "at-wrap" },
+            h("span", { className: "at" }, "@"),
+            h("input", { id: "threads", className: "input" + (errors.threads ? " err" : ""), placeholder: "請輸入帳號", autoCapitalize: "none", autoCorrect: "off", value: profile.threads, onChange: function (e) { setP({ threads: e.target.value }); } })),
+          errors.threads ? h("div", { className: "errmsg" }, errors.threads) : null,
+          h("input", { ref: hpRef, className: "hp", type: "text", name: "website", tabIndex: -1, autoComplete: "off", "aria-hidden": "true" })),
+
+        h("div", { className: "section-head" },
+          h("h2", null, "🛍️ 委託商品清單"),
+          h("p", null, "照片必填（請傳 1:1 正方形或 4:3 清楚商品圖，避免長條截圖變形）✨")),
+        h("div", { className: "stack", style: { gap: 14, marginTop: 10 } },
+          items.map(function (it, idx) {
+            return h(ItemCard, { key: it.id, item: it, index: idx, err: errors.itemErr && errors.itemErr[it.id], canRemove: items.length > 1, onUpdate: updateItem, onRemove: removeItem });
+          })),
+        h("button", { type: "button", className: "btn-add", onClick: addItems }, "＋ 新增商品"),
+
+        h("section", { className: "card mt-l" },
+          h("h2", { style: { margin: 0, fontSize: 16, fontWeight: 800 } }, "📦 出貨與對帳資料"),
+          h("div", { className: "pay" },
+            h("div", { className: "head" }, h(Icon, { name: "wallet", size: 16 }), h("span", null, "匯款訂金 $1000 ｜ 送單後私訊對帳")),
+            h("div", { className: "warn" }, h(Icon, { name: "alert", size: 14 }), h("span", null, "特別提醒：自行評估很難買到的先不要匯款！"))),
+          h("div", { className: "mt-m" },
+            h("label", { className: "lbl", htmlFor: "last5" }, "訂金匯款帳號末 5 碼"),
+            h("input", { id: "last5", className: "input" + (errors.last5 ? " err" : ""), inputMode: "numeric", maxLength: 5, placeholder: "12345（還沒匯款可先空著）", value: profile.last5, onChange: function (e) { setP({ last5: e.target.value.replace(/\D/g, "") }); } }),
+            errors.last5 ? h("div", { className: "errmsg" }, errors.last5) : h("div", { className: "hint" }, "送單後私訊 Threads 對帳確認即可～")),
+          h("div", { className: "mt-m", "data-err": errors.shipping ? "true" : undefined },
+            h("span", { className: "lbl", style: { display: "block" } }, "預計出貨方式（必選）"),
+            h("div", { className: "stack gap-s", role: "radiogroup", "aria-label": "預計出貨方式" },
+              Object.keys(SHIPPING).map(function (k) {
+                var sp = SHIPPING[k], on = profile.shipping === k;
+                return h("button", { key: k, type: "button", role: "radio", "aria-checked": on, className: "opt" + (on ? " on" : ""), onClick: function () { setP({ shipping: k }); } },
+                  h("span", { className: "radio" }),
+                  h(Icon, { name: sp.icon, size: 18 }),
+                  h("div", null, h("div", { className: "ttl" }, sp.label), h("div", { className: "desc" }, sp.desc)));
+              })),
+            errors.shipping ? h("div", { className: "errmsg" }, errors.shipping) : null)),
+
+        sendError ? h("div", { className: "banner", role: "alert" }, sendError) : null,
+
+        h("button", { type: "button", className: "btn-main mt-l", disabled: submitting, onClick: submit },
+          h(Icon, { name: "send", size: 18 }),
+          h("span", null, submitting ? "正在送出…" : "確認送出委託 🌸"),
+          totalQty > 0 ? h("span", { style: { fontSize: 14, opacity: .9 } }, "（共 " + totalQty + " 件）") : null),
+        h("p", { className: "foot-note" }, "送單後會產生專屬訂單編號，請截圖並私訊對帳唷 ✨")),
+
+      done ? h("div", { className: "overlay", role: "dialog", "aria-modal": "true", "aria-label": "委託已送出" },
+        h("div", { className: "card modal" },
+          h("div", { className: "ok" }, h(Icon, { name: "check", size: 26 })),
+          h("h3", null, "委託已送出，請截圖保存！🌸"),
+          h("div", { style: { marginTop: 12, fontSize: 12, color: "var(--sub)" } }, "你的專屬訂單編號"),
+          h("div", { className: "no" }, done.orderNo),
+          h("button", { type: "button", className: "btn-sub", style: { marginTop: 8 }, onClick: function () { copyText(done.orderNo).then(function (ok) { notify(ok ? "已複製訂單編號" : "複製失敗，請長按編號手動複製"); }); } }, h(Icon, { name: "copy", size: 13 }), " 複製編號"),
+          h("ul", null, done.items.map(function (it) { return h("li", { key: it.id }, h("span", null, it.name), h("span", null, "× " + it.qty)); })),
+          h("div", { className: "tip" }, "請", h("b", null, "截圖這個畫面"), "並私訊 Threads，附上訂單編號與匯款末 5 碼對帳唷！"),
+          done.confirmed ? null : h("div", { className: "tip warn" }, "系統無法即時確認收單狀態，私訊時請務必附上訂單編號，我們會再核對。"),
+          h("button", { type: "button", className: "btn-main", style: { marginTop: 16, fontSize: 14, padding: 11 }, onClick: closeDone }, "完成"))) : null,
+
+      toast ? h("div", { className: "toast", role: "status" }, h("div", null, toast)) : null);
+  }
+
+  ReactDOM.createRoot(document.getElementById("app")).render(h(App));
+})();
+</script>
+</body>
+</html>
