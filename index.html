@@ -200,7 +200,6 @@ label.lbl.accent { color: var(--pink-deep); }
 
   var PLACES = ["精品", "專櫃香水化妝品", "Bic camera", "藥妝店", "堂吉訶德", "三麗鷗", "寶可夢", "超商", "其他"];
   var STORES = ["7-11", "全家", "Lawson"];   // 選「超商」後展開的單選
-  // 點選後需要展開輸入框的項目 -> [缺填時的錯誤訊息, placeholder]
   var NEED_DETAIL = {
     "精品": ["請填寫具體門市或專櫃名稱", "例：CELINE 銀座店"],
     "專櫃香水化妝品": ["請填寫具體門市或專櫃名稱", "例：SK-II 新宿伊勢丹專櫃"],
@@ -270,7 +269,6 @@ label.lbl.accent { color: var(--pink-deep); }
     catch (e) { return Promise.resolve(false); }
   }
 
-  // 組合「哪裡購買」字串，例："精品 - CELINE 銀座店"、"堂吉訶德"、"藥妝店"
   function buildBrand(it) {
     if (!USE_PLACE_PICKER) return it.placeDetail.trim();
     if (!it.place) return "";
@@ -279,7 +277,6 @@ label.lbl.accent { color: var(--pink-deep); }
     return it.place;
   }
 
-  // 送單：先用標準請求（可讀到回應）；若被瀏覽器擋（CORS/網路），改用 no-cors 補送一次
   function postOrder(payload) {
     var body = JSON.stringify(payload);
     var headers = { "Content-Type": "text/plain;charset=utf-8" };
@@ -350,7 +347,6 @@ label.lbl.accent { color: var(--pink-deep); }
       p.error ? h("div", { className: "errmsg" }, p.error) : null);
   }
 
-  // 哪裡購買：標籤 + 動態展開區塊
   function PlacePicker(p) {
     var it = p.item, err = p.error;
     function choose(place) {
@@ -420,7 +416,7 @@ label.lbl.accent { color: var(--pink-deep); }
     var s6 = useState(""), toast = s6[0], setToast = s6[1];
     var s7 = useState(""), sendError = s7[0], setSendError = s7[1];
     var toastTimer = useRef(null);
-    var orderNoRef = useRef(null);   // 同一張單重試時沿用同一個編號
+    var orderNoRef = useRef(null);
     var lastSentRef = useRef(0);
     var hpRef = useRef(null);
 
@@ -439,13 +435,12 @@ label.lbl.accent { color: var(--pink-deep); }
       });
     }
 
-    // 空白的商品卡（沒圖、沒品名）不算數；至少要有一件有填的商品
     function isBlank(it) { return !it.image && !it.name.trim() && !it.variant.trim() && !it.place && !it.placeDetail.trim(); }
     var totalQty = items.reduce(function (s, it) { return s + ((it.name.trim() || it.image) ? it.qty : 0); }, 0);
 
     function submit() {
       if (submitting) return;
-      if (hpRef.current && hpRef.current.value) return;   // 機器人欄位
+      if (hpRef.current && hpRef.current.value) return;
       var errs = {};
       var threads = profile.threads.trim().replace(/^@+/, "");
       var last5 = profile.last5.trim();
@@ -454,7 +449,7 @@ label.lbl.accent { color: var(--pink-deep); }
       if (!profile.shipping) errs.shipping = "請選擇預計出貨方式";
 
       var filled = items.filter(function (it) { return !isBlank(it); });
-      var target = filled.length ? filled : [items[0]];   // 全空時，提示第一張必填
+      var target = filled.length ? filled : [items[0]];
       var itemErr = {};
       target.forEach(function (it) {
         var e = {};
@@ -528,15 +523,15 @@ label.lbl.accent { color: var(--pink-deep); }
       h("main", null,
         h("section", { className: "card" },
           h("div", { className: "merge" },
-            h("div", { className: "l1" }, "⛩️ 💰演算法緣分限定 💰⛩️"),
+            h("div", { className: "l1" }, "⛩️💰緣分限定💰⛩️"),
             h("div", { className: "l2" }, "🌑 商品計算：商品稅後價 × 0.22315")),
-          h("p", { className: "min-order" }, "* 只接總金額台幣1000-5000 以上訂單"),
+          h("p", { className: "min-order" }, "*僅接總金額台幣2000元以上訂單*"),
           h("div", { className: "schedule" },
             h("span", null, "⏰ 收單截止：9/29 10:00"), h("i", null, "｜"), h("span", null, "📦 回台出貨：10/2起陸續寄出")),
           h("div", { className: "steps" },
             h("div", null, h("b", null, "1. 填單截圖"), "填寫清單並截圖保存"),
             h("div", { className: "arrow" }, "➜"),
-            h("div", null, h("b", null, "2. 私訊對帳"), "私訊 Threads 小盒子確認"),
+            h("div", null, h("b", null, "2. 私訊Threads 小盒子"), "傳送訂金/寄送資訊"),
             h("div", { className: "arrow" }, "➜"),
             h("div", null, h("b", null, "3. 連線採買"), "現場確認庫存、回台迅速出貨"))),
 
