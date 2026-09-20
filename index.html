@@ -82,25 +82,33 @@ main { max-width: 620px; margin: 0 auto; padding: 16px 16px 80px; position: rela
 .schedule span { display: inline-block; white-space: nowrap; }
 .schedule i { font-style: normal; color: var(--pink); margin: 0 4px; }
 
-/* 流程步驟：精準等分與防遮擋間隔 */
-.steps {
+/* 流程步驟：精準網格，徹底杜絕重疊遮擋 */
+.steps-wrapper {
   margin-top: 16px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   text-align: center;
   color: var(--sub);
+  width: 100%;
 }
 .step-col {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.step-col.s1, .step-col.s3 {
+  flex: 0 0 25%;
+}
+.step-col.s2 {
+  flex: 0 0 40%;
 }
 .step-col b {
   display: block;
-  font-size: 12.5px;
+  font-size: 11px;
+  letter-spacing: -0.2px;
   color: var(--pink-deep);
   margin-bottom: 4px;
   white-space: nowrap;
@@ -112,13 +120,14 @@ main { max-width: 620px; margin: 0 auto; padding: 16px 16px 80px; position: rela
   white-space: nowrap;
 }
 .step-arrow {
-  flex: none;
-  color: var(--pink);
-  font-size: 12px;
-  padding: 0 2px;
-  margin-top: 2px;
-  opacity: 0.8;
+  flex: 0 0 5%;
+  color: var(--pink-deep);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+  opacity: 0.65;
   user-select: none;
+  margin-bottom: 16px;
 }
 
 label.lbl { display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--sub); }
@@ -580,21 +589,21 @@ label.lbl.accent { color: var(--pink-deep); }
           h("div", { className: "schedule" },
             h("span", null, "⏰ 收單截止：9/29 10:00"), h("i", null, "｜"), h("span", null, "📦 回台出貨：10/2起陸續寄出")),
           
-          /* 防遮擋對齊三步驟 */
-          h("div", { className: "steps" },
-            h("div", { className: "step-col" }, 
+          /* 防重疊三步驟 */
+          h("div", { className: "steps-wrapper" },
+            h("div", { className: "step-col s1" }, 
               h("b", null, "1. 填單截圖"), 
               h("span", null, "填寫清單"),
               h("span", null, "截圖保存")
             ),
-            h("div", { className: "step-arrow" }, "➜"),
-            h("div", { className: "step-col" }, 
+            h("div", { className: "step-arrow" }, "›"),
+            h("div", { className: "step-col s2" }, 
               h("b", null, "2. 私訊 Threads 小盒子"), 
               h("span", null, "私訊傳送截圖"),
               h("span", null, "提供訂金/寄送資訊")
             ),
-            h("div", { className: "step-arrow" }, "➜"),
-            h("div", { className: "step-col" }, 
+            h("div", { className: "step-arrow" }, "›"),
+            h("div", { className: "step-col s3" }, 
               h("b", null, "3. 連線採買"), 
               h("span", null, "現場確認庫存"),
               h("span", null, "回台迅速出貨")
