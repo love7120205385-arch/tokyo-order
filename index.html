@@ -75,8 +75,9 @@ main { max-width: 620px; margin: 0 auto; padding: 16px 16px 80px; position: rela
 
 /* 資訊卡片 */
 .merge { border-radius: 18px; padding: 12px 14px; text-align: center; background: var(--pink-light); }
-.merge .l1 { font-size: 16px; font-weight: 900; color: var(--pink-deep); }
+.merge .l1 { font-size: 16px; font-weight: 900; color: var(--pink-deep); letter-spacing: .02em; }
 .merge .l2 { margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--note-text); }
+.merge .l3 { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--sub); }
 .min-order { margin: 14px 0 0; text-align: center; font-size: 15px; font-weight: 900; color: var(--alert); letter-spacing: .01em; }
 .schedule { margin-top: 12px; padding: 9px 12px; border: 1.5px dashed var(--pink); border-radius: 14px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.7; color: var(--note-text); }
 .schedule span { display: inline-block; white-space: nowrap; }
@@ -257,7 +258,6 @@ label.lbl.accent { color: var(--pink-deep); }
     seller: { label: "賣家開 7-11 賣貨便下單", desc: "買到後會開賣場讓你下單", icon: "store" }
   };
 
-  // 將「日本藥妝」改為「大國/SUNDRUG」
   var PLACES = ["精品專櫃", "專櫃美妝", "Bic Camera", "大國/SUNDRUG", "堂吉訶德", "三麗鷗", "寶可夢", "各大超商", "其他實體門市"];
   var STORES = ["7-11", "全家", "Lawson"];
   var NEED_DETAIL = {
@@ -584,8 +584,9 @@ label.lbl.accent { color: var(--pink-deep); }
       h("main", null,
         h("section", { className: "card" },
           h("div", { className: "merge" },
-            h("div", { className: "l1" }, "⛩️💰緣分限定 💰⛩️"),
-            h("div", { className: "l2" }, "🌑 商品計算：商品稅後價 × 0.22315")),
+            h("div", { className: "l1" }, "⛩️ 💰 緣分限定 💰 ⛩️"),
+            h("div", { className: "l2" }, "商品計算：商品含稅價 × 0.22315"),
+            h("div", { className: "l3" }, "(若店家無法退稅需另計 10% 稅金)")),
           h("p", { className: "min-order" }, "*只接總金額台幣2000以上訂單*"),
           h("div", { className: "schedule" },
             h("span", null, "⏰ 收單截止：9/29 10:00"), h("i", null, "｜"), h("span", null, "📦 回台出貨：10/2起陸續寄出")),
