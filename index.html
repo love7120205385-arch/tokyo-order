@@ -213,6 +213,18 @@ label.lbl.accent { color: var(--pink-deep); }
 .banner { margin-top:14px; padding:12px; border-radius:14px; font-size:13px; font-weight:600; line-height:1.6; background:var(--err-bg); color:var(--err); border:1.5px solid var(--err); }
 .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
 
+/* 正在處理中的全螢幕提示遮罩 */
+.loading-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(45, 37, 33, 0.75); backdrop-filter: blur(5px); color: #fff; text-align: center; padding: 20px;
+}
+.loading-spinner {
+  width: 44px; height: 44px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #F8B5C2;
+  border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .overlay { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.45); backdrop-filter:blur(4px); }
 .modal { width:100%; max-width:384px; text-align:center; padding:24px; max-height:92vh; overflow:auto; animation:pop .22s ease-out; }
 @keyframes pop { from { transform:scale(.97); opacity:0; } to { transform:none; opacity:1; } }
@@ -220,7 +232,6 @@ label.lbl.accent { color: var(--pink-deep); }
 .modal h3 { margin:12px 0 0; font-size:16px; font-weight:800; }
 .modal .no { font-size:24px; font-weight:900; letter-spacing:.06em; margin-top:2px; color:var(--pink-deep); user-select:all; }
 .modal .tip { margin-top:16px; padding:12px; border-radius:12px; font-size:12px; text-align:left; line-height:1.7; background:var(--pink-light); color:var(--success-text); }
-.modal .tip.warn { background:var(--err-bg); color:var(--err); }
 .modal ul { margin:12px 0 0; padding:0; list-style:none; text-align:left; font-size:12px; color:var(--sub); }
 .modal li { padding:4px 0; border-bottom:1px dashed var(--divider); display:flex; justify-content:space-between; gap:8px; }
 .toast { position:fixed; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); z-index:60; display:flex; justify-content:center; padding:0 16px; pointer-events:none; }
@@ -240,10 +251,8 @@ label.lbl.accent { color: var(--pink-deep); }
   var useState = React.useState, useRef = React.useRef, useCallback = React.useCallback;
 
   /* ================= 設定 ================= */
-  // 100% 原始精確 Google Apps Script 網址
   var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwk_PI1xETIasuyq0hEUz1YdyPk50V162o9-c10FqYrxrccg4rCKFgSS1NeXJg76Lpb/exec";
   var MAX_PAYLOAD_MB = 8;
-  var COOLDOWN_MS = 10000; // 縮短間隔
   var INITIAL_ITEMS = 2;
   var ADD_COUNT = 2;
   var USE_PLACE_PICKER = true;
@@ -291,7 +300,7 @@ label.lbl.accent { color: var(--pink-deep); }
     return "TK" + String(d.getFullYear()).slice(2) + p(d.getMonth() + 1) + p(d.getDate()) + "-" + r;
   }
   function compressAndValidateImage(file, maxSide, quality) {
-    maxSide = maxSide || 800; quality = quality || 0.65;
+    maxSide = maxSide || 750; quality = quality || 0.6; // 進一步優化壓縮體積，加快上傳速度
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
       reader.onerror = function () { reject(new Error("讀取照片失敗")); };
@@ -332,7 +341,6 @@ label.lbl.accent { color: var(--pink-deep); }
     return it.place;
   }
 
-  // 精確傳送，嚴格解析回應
   function postOrder(payload) {
     var body = JSON.stringify(payload);
     var headers = { "Content-Type": "text/plain;charset=utf-8" };
@@ -344,9 +352,7 @@ label.lbl.accent { color: var(--pink-deep); }
       .then(function (txt) {
         var j = null;
         try { j = JSON.parse(txt); } catch (x) {}
-        if (j && j.ok === false) {
-          throw new Error(j.error || "後端處理失敗");
-        }
+        if (j && j.ok === false) throw new Error(j.error || "後端處理失敗");
         return { confirmed: true };
       });
   }
@@ -391,7 +397,7 @@ label.lbl.accent { color: var(--pink-deep); }
     }
     return h("div", null,
       h("button", { type: "button", className: "drop" + (p.error || uploadErr ? " err" : ""), onClick: pick },
-        compressing ? h("span", { className: "t1 pulse" }, "檢查與縮圖中…") : [
+        compressing ? h("span", { className: "t1 pulse" }, "壓縮照片中…") : [
           h(Icon, { key: "i", name: "imageplus", size: 24 }),
           h("span", { key: "a", className: "t1" }, "上傳截圖 (必附)"),
           h("span", { key: "b", className: "t2" }, "1:1 或 4:3 圖片")
@@ -535,7 +541,6 @@ label.lbl.accent { color: var(--pink-deep); }
         return;
       }
 
-      // 每次送單必產生全新訂單編號
       var orderNo = genOrderNo();
       var payload = {
         orderNo: orderNo,
@@ -562,11 +567,11 @@ label.lbl.accent { color: var(--pink-deep); }
       setSubmitting(true);
       setSendError("");
       postOrder(payload)
-        .then(function (r) {
-          setDone({ orderNo: orderNo, threads: threads, items: filled, confirmed: true });
+        .then(function () {
+          setDone({ orderNo: orderNo, threads: threads, items: filled });
         })
         .catch(function (err) {
-          setSendError("送出失敗：" + (err.message || "請檢查網路後再試一次") + "。訂單未成功送達！");
+          setSendError("送出失敗：" + (err.message || "連線逾時，請再試一次") + "。訂單未成功送達！");
         })
         .then(function () {
           setSubmitting(false);
@@ -583,6 +588,13 @@ label.lbl.accent { color: var(--pink-deep); }
     }
 
     return h("div", { className: "root" },
+      // 送單中的全螢幕遮罩提示
+      submitting ? h("div", { className: "loading-overlay" },
+        h("div", { className: "loading-spinner" }),
+        h("div", { style: { fontSize: 16, fontWeight: 800 } }, "正在上傳照片與送出訂單…"),
+        h("div", { style: { fontSize: 13, marginTop: 8, opacity: 0.85 } }, "照片處理中，請稍候約 3~5 秒，請勿跳出畫面唷！🌸")
+      ) : null,
+
       h("header", { className: "top" }, h("h1", null, "🧳 行李箱空間有限・滿單即收單 ⏰")),
       h("main", null,
         h("section", { className: "card" },
@@ -658,7 +670,7 @@ label.lbl.accent { color: var(--pink-deep); }
 
         h("button", { type: "button", className: "btn-main mt-l", disabled: submitting, onClick: submit },
           h(Icon, { name: "send", size: 18 }),
-          h("span", null, submitting ? "正在送出…" : "確認送出委託 🌸"),
+          h("span", null, submitting ? "連線送單中…" : "確認送出委託 🌸"),
           totalQty > 0 ? h("span", { style: { fontSize: 14, opacity: .9 } }, "（共 " + totalQty + " 件）") : null),
         h("p", { className: "foot-note" }, "送單後會產生專屬訂單編號，請截圖並私訊對帳唷 ✨")),
 
