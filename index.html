@@ -213,7 +213,6 @@ label.lbl.accent { color: var(--pink-deep); }
 .banner { margin-top:14px; padding:12px; border-radius:14px; font-size:13px; font-weight:600; line-height:1.6; background:var(--err-bg); color:var(--err); border:1.5px solid var(--err); }
 .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
 
-/* 正在處理中的全螢幕提示遮罩 */
 .loading-overlay {
   position: fixed; inset: 0; z-index: 100;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -300,7 +299,7 @@ label.lbl.accent { color: var(--pink-deep); }
     return "TK" + String(d.getFullYear()).slice(2) + p(d.getMonth() + 1) + p(d.getDate()) + "-" + r;
   }
   function compressAndValidateImage(file, maxSide, quality) {
-    maxSide = maxSide || 750; quality = quality || 0.6; // 進一步優化壓縮體積，加快上傳速度
+    maxSide = maxSide || 750; quality = quality || 0.6;
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
       reader.onerror = function () { reject(new Error("讀取照片失敗")); };
@@ -542,13 +541,16 @@ label.lbl.accent { color: var(--pink-deep); }
       }
 
       var orderNo = genOrderNo();
+      // 將出貨方式轉成完整繁體中文文字傳送
+      var shippingText = SHIPPING[profile.shipping] ? SHIPPING[profile.shipping].label : profile.shipping;
+
       var payload = {
         orderNo: orderNo,
         threads: threads,
         last5: last5,
         refundBank: "無（暫不提供）",
         refundAcct: "無（暫不提供）",
-        shipping: profile.shipping,
+        shipping: shippingText,
         note: "",
         items: filled.map(function (it) {
           return {
@@ -588,7 +590,6 @@ label.lbl.accent { color: var(--pink-deep); }
     }
 
     return h("div", { className: "root" },
-      // 送單中的全螢幕遮罩提示
       submitting ? h("div", { className: "loading-overlay" },
         h("div", { className: "loading-spinner" }),
         h("div", { style: { fontSize: 16, fontWeight: 800 } }, "正在上傳照片與送出訂單…"),
