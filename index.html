@@ -82,7 +82,7 @@ main { max-width: 620px; margin: 0 auto; padding: 16px 16px 80px; position: rela
 .schedule span { display: inline-block; white-space: nowrap; }
 .schedule i { font-style: normal; color: var(--pink); margin: 0 4px; }
 
-/* 流程步驟：精準網格，徹底杜絕重疊遮擋 */
+/* 流程步驟：精準等分與防遮擋間隔 */
 .steps-wrapper {
   margin-top: 16px;
   display: flex;
@@ -257,7 +257,8 @@ label.lbl.accent { color: var(--pink-deep); }
     seller: { label: "賣家開 7-11 賣貨便下單", desc: "買到後會開賣場讓你下單", icon: "store" }
   };
 
-  var PLACES = ["精品專櫃", "專櫃美妝", "Bic Camera", "日本藥妝", "堂吉訶德", "三麗鷗", "寶可夢", "各大超商", "其他實體門市"];
+  // 將「日本藥妝」改為「大國/SUNDRUG」
+  var PLACES = ["精品專櫃", "專櫃美妝", "Bic Camera", "大國/SUNDRUG", "堂吉訶德", "三麗鷗", "寶可夢", "各大超商", "其他實體門市"];
   var STORES = ["7-11", "全家", "Lawson"];
   var NEED_DETAIL = {
     "精品專櫃": ["請填寫具體門市或專櫃名稱", "例：CELINE 銀座店"],
