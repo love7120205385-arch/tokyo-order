@@ -256,9 +256,10 @@ label.lbl.accent { color: var(--pink-deep); }
   var ADD_COUNT = 2;
   var USE_PLACE_PICKER = true;
 
+  // 出貨方式直接以中文做 Key，保證值絕對不會遺失
   var SHIPPING = {
-    self:   { label: "自行提供超商寄件編號", desc: "到貨後請提供寄件編號給我", icon: "truck" },
-    seller: { label: "賣家開 7-11 賣貨便下單", desc: "買到後會開賣場讓你下單", icon: "store" }
+    "自行提供超商寄件編號": { desc: "到貨後請提供寄件編號給我", icon: "truck" },
+    "賣家開 7-11 賣貨便下單": { desc: "買到後會開賣場讓你下單", icon: "store" }
   };
 
   var PLACES = ["精品專櫃", "專櫃美妝", "Bic Camera", "大國/SUNDRUG", "堂吉訶德", "三麗鷗", "寶可夢", "各大超商", "其他實體門市"];
@@ -541,16 +542,14 @@ label.lbl.accent { color: var(--pink-deep); }
       }
 
       var orderNo = genOrderNo();
-      // 將出貨方式轉成完整繁體中文文字傳送
-      var shippingText = SHIPPING[profile.shipping] ? SHIPPING[profile.shipping].label : profile.shipping;
-
+      // 直接傳遞選取的中文文字字串
       var payload = {
         orderNo: orderNo,
         threads: threads,
         last5: last5,
         refundBank: "無（暫不提供）",
         refundAcct: "無（暫不提供）",
-        shipping: shippingText,
+        shipping: profile.shipping || "",
         note: "",
         items: filled.map(function (it) {
           return {
@@ -658,12 +657,12 @@ label.lbl.accent { color: var(--pink-deep); }
           h("div", { className: "mt-m", "data-err": errors.shipping ? "true" : undefined },
             h("span", { className: "lbl", style: { display: "block" } }, "預計出貨方式（必選）"),
             h("div", { className: "stack gap-s", role: "radiogroup", "aria-label": "預計出貨方式" },
-              Object.keys(SHIPPING).map(function (k) {
-                var sp = SHIPPING[k], on = profile.shipping === k;
-                return h("button", { key: k, type: "button", role: "radio", "aria-checked": on, className: "opt" + (on ? " on" : ""), onClick: function () { setP({ shipping: k }); } },
+              Object.keys(SHIPPING).map(function (label) {
+                var sp = SHIPPING[label], on = profile.shipping === label;
+                return h("button", { key: label, type: "button", role: "radio", "aria-checked": on, className: "opt" + (on ? " on" : ""), onClick: function () { setP({ shipping: label }); } },
                   h("span", { className: "radio" }),
                   h(Icon, { name: sp.icon, size: 18 }),
-                  h("div", null, h("div", { className: "ttl" }, sp.label), h("div", { className: "desc" }, sp.desc)));
+                  h("div", null, h("div", { className: "ttl" }, label), h("div", { className: "desc" }, sp.desc)));
               })),
             errors.shipping ? h("div", { className: "errmsg" }, errors.shipping) : null)),
 
