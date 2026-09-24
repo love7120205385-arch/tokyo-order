@@ -256,7 +256,6 @@ label.lbl.accent { color: var(--pink-deep); }
   var ADD_COUNT = 2;
   var USE_PLACE_PICKER = true;
 
-  // 出貨方式直接以中文做 Key，保證值絕對不會遺失
   var SHIPPING = {
     "自行提供超商寄件編號": { desc: "到貨後請提供寄件編號給我", icon: "truck" },
     "賣家開 7-11 賣貨便下單": { desc: "買到後會開賣場讓你下單", icon: "store" }
@@ -361,7 +360,7 @@ label.lbl.accent { color: var(--pink-deep); }
     return { id: uid(), image: "", name: "", place: "", placeDetail: "", store: "", variant: "", qty: 1, fallback: "cancel", fallbackNote: "" };
   };
   var initialItems = function () { var a = []; for (var i = 0; i < INITIAL_ITEMS; i++) a.push(newItem()); return a; };
-  var emptyProfile = { threads: "", last5: "", shipping: "" };
+  var emptyProfile = { threads: "", shipping: "" };
 
   /* ================= 元件 ================= */
   function Stepper(p) {
@@ -507,9 +506,7 @@ label.lbl.accent { color: var(--pink-deep); }
       if (hpRef.current && hpRef.current.value) return;
       var errs = {};
       var threads = profile.threads.trim().replace(/^@+/, "");
-      var last5 = profile.last5.trim();
       if (!threads) errs.threads = "請填寫 Threads 帳號，方便我們私訊對帳";
-      if (last5 && !/^\d{5}$/.test(last5)) errs.last5 = "末 5 碼需為 5 位數字（還沒匯款可留空）";
       if (!profile.shipping) errs.shipping = "請選擇預計出貨方式";
 
       var filled = items.filter(function (it) { return !isBlank(it); });
@@ -542,11 +539,10 @@ label.lbl.accent { color: var(--pink-deep); }
       }
 
       var orderNo = genOrderNo();
-      // 直接傳遞選取的中文文字字串
       var payload = {
         orderNo: orderNo,
         threads: threads,
-        last5: last5,
+        last5: "",
         refundBank: "無（暫不提供）",
         refundAcct: "無（暫不提供）",
         shipping: profile.shipping || "",
@@ -650,10 +646,6 @@ label.lbl.accent { color: var(--pink-deep); }
           h("div", { className: "pay" },
             h("div", { className: "head" }, h(Icon, { name: "wallet", size: 16 }), h("span", null, "匯款訂金 $1000 ｜ 送單後私訊對帳")),
             h("div", { className: "warn" }, h(Icon, { name: "alert", size: 14 }), h("span", null, "特別提醒：自行評估很難買到的先不要匯款！"))),
-          h("div", { className: "mt-m" },
-            h("label", { className: "lbl", htmlFor: "last5" }, "訂金匯款帳號末 5 碼"),
-            h("input", { id: "last5", className: "input" + (errors.last5 ? " err" : ""), inputMode: "numeric", maxLength: 5, placeholder: "12345（還沒匯款可先空著）", value: profile.last5, onChange: function (e) { setP({ last5: e.target.value.replace(/\D/g, "") }); } }),
-            errors.last5 ? h("div", { className: "errmsg" }, errors.last5) : h("div", { className: "hint" }, "送單後私訊 Threads 對帳確認即可～")),
           h("div", { className: "mt-m", "data-err": errors.shipping ? "true" : undefined },
             h("span", { className: "lbl", style: { display: "block" } }, "預計出貨方式（必選）"),
             h("div", { className: "stack gap-s", role: "radiogroup", "aria-label": "預計出貨方式" },
@@ -682,7 +674,7 @@ label.lbl.accent { color: var(--pink-deep); }
           h("div", { className: "no" }, done.orderNo),
           h("button", { type: "button", className: "btn-sub", style: { marginTop: 8 }, onClick: function () { copyText(done.orderNo).then(function (ok) { notify(ok ? "已複製訂單編號" : "複製失敗，請長按編號手動複製"); }); } }, h(Icon, { name: "copy", size: 13 }), " 複製編號"),
           h("ul", null, done.items.map(function (it) { return h("li", { key: it.id }, h("span", null, it.name), h("span", null, "× " + it.qty)); })),
-          h("div", { className: "tip" }, "請", h("b", null, "截圖這個畫面"), "並私訊 Threads，附上訂單編號與匯款末 5 碼對帳唷！"),
+          h("div", { className: "tip" }, "請", h("b", null, "截圖這個畫面"), "並私訊 Threads，附上訂單編號對帳唷！"),
           h("button", { type: "button", className: "btn-main", style: { marginTop: 16, fontSize: 14, padding: 11 }, onClick: closeDone }, "完成"))) : null,
 
       toast ? h("div", { className: "toast", role: "status" }, h("div", null, toast)) : null);
